@@ -53,7 +53,33 @@ Creation of the kubernetes cluster will take some time. Approx 8 minutes.
    helm install -f ./helm/nginx/values.yaml ingress bitnami/nginx -n ingress
    ```
 
-
+### Deploy Strimzi (kafka cluster)
+1. From the k8s directory deploy the kafka namespace
+```
+kubectl apply -f ./namespaces/kafka.yaml
+```
+2. From the k8s directory deploy the Strimzi CRD, roles, clusterroles, etc...
+```
+kubectl apply -f ./strimzi-setup.yaml -n kafka
+```
+3. From the k8s directoty deploy the kafaka cluster
+```
+kubectl apply -f ./strimzi-cluster.yaml
+```
+### Test the kafka cluster
+1. Start a producer
+```
+kubectl -n kafka run kafka-producer -ti --image=quay.io/strimzi/kafka:0.26.0-kafka-3.0.0 --rm=true --restart=Never -- bin/kafka-console-producer.sh --broker-list cluster-kafka-bootstrap:9092 --topic my-topic
+```
+2. From a new console start a consumer
+```
+kubectl -n kafka run kafka-consumer -ti --image=quay.io/strimzi/kafka:0.26.0-kafka-3.0.0 --rm=true --restart=Never -- bin/kafka-console-consumer.sh --bootstrap-server cluster-kafka-bootstrap:9092 --topic my-topic --from-beginning
+```
+3. From the producer command line type a message and hit enter
+```
+> This is a test message
+```
+The consumer should receive and display the message
 <!-- USAGE EXAMPLES -->
 ## Usage
 
