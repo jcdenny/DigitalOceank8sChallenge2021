@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer
+  namespace: kafka
+  labels:
+    app: consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer
+  template:
+    metadata:
+      labels:
+        app: consumer
+    spec:
+      containers:
+      - name: consumer
+        image: registry.digitalocean.com/challenge/producer:consumer
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: consumer
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: consumer
+  namespace: kafka
+data:
+  KAFKA_BOOTSTRAP_SERVER: "cluster-kafka-bootstrap:9092"
+  TOPIC: "test1"
+  GROUP_ID: "group-id"
+  CLIENT_ID: "consumer-1"

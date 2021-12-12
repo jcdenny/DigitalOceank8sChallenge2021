@@ -49,8 +49,8 @@ Creation of the kubernetes cluster will take some time. Approx 8 minutes.
    ```
 2. Install the ingress via helm
    ```
-   helm repo add bitnami https://charts.bitnami.com/bitnami
-   helm install -f ./helm/nginx/values.yaml ingress bitnami/nginx -n ingress
+   helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+   helm install nginx-ingress ingress-nginx/ingress-nginx --set controller.publishService.enabled=true -n ingress
    ```
 
 ### Deploy Strimzi (kafka cluster)
@@ -82,6 +82,13 @@ kubectl -n kafka run kafka-consumer -ti --image=quay.io/strimzi/kafka:0.26.0-kaf
 The consumer should receive and display the message
 <!-- USAGE EXAMPLES -->
 ## Usage
+
+### Example application
+nodejs app that receives clicks on the front end and produces messages on the
+kafka cluster
+
+A consumer app takes that data and writes it to a DB
+
 
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 

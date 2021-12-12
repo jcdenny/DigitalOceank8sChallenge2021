@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: topic-creator
+  namespace: kafka
+  labels:
+    app: topic-creator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: topic-creator
+  template:
+    metadata:
+      labels:
+        app: topic-creator
+    spec:
+      containers:
+      - name: topic-creator
+        image: registry.digitalocean.com/challenge/producer:topic-creator
+        imagePullPolicy: Always
