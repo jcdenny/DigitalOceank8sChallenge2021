@@ -9,7 +9,7 @@ The app simply takes a POST to the producer url ```http://producer.denops.net```
 managed kubernetes cluster running in Digital Ocean. Included in the repo is the IaC to spin up the kubernetes cluster.
 
 ### Current Running Example
-###3 Create a message through the producer
+#### Create a message through the producer
 ```
 curl -X POST http://producer.denops.net
    -H "Content-Type: application/json"
