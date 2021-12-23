@@ -4,20 +4,30 @@ Deploy a scalable message queue
 A critical component of all the scalable architectures are message queues used to store and distribute messages to multiple parties and introduce buffering. Kafka is widely used in this space and there are multiple operators like [Strimzi](https://strimzi.io/) or to deploy it. For this project, use a sample app to demonstrate how your message queue works.
 
 
+## Overview
+The app simply takes a POST to the producer url ```http://producer.denops.net``` which produces a message to a kafka topic to a specific group ID. The message is received by the receiver using a GET to the consumer url ```http://consumer.denops.net```. The consumer appends the kafka message to a local file which is read after the request is completed. Both Kafka and the producer/consumer app are deployed to the
+managed kubernetes cluster running in Digital Ocean. Included in the repo is the IaC to spin up the kubernetes cluster.
+
+### Current Running Example
+###3 Create a message through the producer
+```
+curl -X POST http://producer.denops.net
+   -H "Content-Type: application/json"
+   -d '{"message": "test"}'
+```
+#### View the message through the consumer
+```
+http://consumer.denops.net/
+```
 
 ### Built With
 
-This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
-
 * [terraform](https://www.terraform.io/)
 * [Strimzi](https://strimzi.io/)
+* [nodejs](https://nodejs.org/en/)
+* [kafkajs](https://kafka.js.org/)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- GETTING STARTED -->
-## Getting Started
 
 Creating the infrastructure 
 
@@ -28,6 +38,7 @@ Tools required:
 * [kubectl](https://kubernetes.io/docs/tasks/tools/)
 * [helm](https://helm.sh/docs/intro/install/)
 * [doctl](https://docs.digitalocean.com/reference/doctl/how-to/install/)
+* [docker desktop](https://www.docker.com/products/docker-desktop)
 
 [Configure auth to Digital Ocean using doctl](https://docs.digitalocean.com/reference/doctl/how-to/install/)
 
@@ -54,17 +65,17 @@ Creation of the kubernetes cluster will take some time. Approx 8 minutes.
    ```
 
 ### Deploy Strimzi (kafka cluster)
-1. From the k8s directory deploy the kafka namespace
+1. Deploy the kafka namespace
 ```
-kubectl apply -f ./namespaces/kafka.yaml
+kubectl apply -f ./k8s/namespaces/kafka.yaml
 ```
-2. From the k8s directory deploy the Strimzi CRD, roles, clusterroles, etc...
+2. Deploy the Strimzi CRD, roles, clusterroles, etc...
 ```
-kubectl apply -f ./strimzi-setup.yaml -n kafka
+kubectl apply -f ./k8s/strimzi/strimzi-setup.yaml -n kafka
 ```
-3. From the k8s directoty deploy the kafaka cluster
+3. Deploy the kafaka cluster
 ```
-kubectl apply -f ./strimzi-cluster.yaml
+kubectl apply -f ./k8s/strimzi/strimzi-cluster.yaml
 ```
 ### Test the kafka cluster
 1. Start a producer
@@ -80,58 +91,27 @@ kubectl -n kafka run kafka-consumer -ti --image=quay.io/strimzi/kafka:0.26.0-kaf
 > This is a test message
 ```
 The consumer should receive and display the message
-<!-- USAGE EXAMPLES -->
-## Usage
 
-### Example application
-nodejs app that receives clicks on the front end and produces messages on the
-kafka cluster
+### CICD with Tekton (optional)
+1. Install tekton
+```
+kubectl apply -f ./k8s/tekton/tekton.yaml
+```
+2. Install the tekton dashboard
+```
+kubectl apply -f ./k8s/tekton/tekton-dashboard-release.yaml
+```
 
-A consumer app takes that data and writes it to a DB
-
-
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- ROADMAP -->
-## Roadmap
-
-- [x] Add Changelog
-- [x] Add back to top links
-- [ ] Add Additional Templates w/ Examples
-- [ ] Add "components" document to easily copy & paste sections of the readme
-- [ ] Multi-language Support
-    - [ ] Chinese
-    - [ ] Spanish
-
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features (and known issues).
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- CONTRIBUTING -->
-## Contributing
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
+### Deploy the producer app
+1. Create the docker image and push to your repo of your choice.
+```
+kubectl apply -f ./apps/producer/producer.yaml
+```
+### Deploy the consumer app
+1. Create the docker image and push to your repo of your choice.
+```
+kubectl apply -f ./apps/consumer/consumer.yaml
+```
 
 <!-- LICENSE -->
 ## License
@@ -139,56 +119,3 @@ Don't forget to give the project a star! Thanks again!
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- CONTACT -->
-## Contact
-
-Your Name - [@your_twitter](https://twitter.com/your_username) - email@example.com
-
-Project Link: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
-
-Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
-
-* [Choose an Open Source License](https://choosealicense.com)
-* [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-* [Malven's Flexbox Cheatsheet](https://flexbox.malven.co/)
-* [Malven's Grid Cheatsheet](https://grid.malven.co/)
-* [Img Shields](https://shields.io)
-* [GitHub Pages](https://pages.github.com)
-* [Font Awesome](https://fontawesome.com)
-* [React Icons](https://react-icons.github.io/react-icons/search)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
-[contributors-url]: https://github.com/othneildrew/Best-README-Template/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
-[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
-[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
-[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
-[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
-[issues-url]: https://github.com/othneildrew/Best-README-Template/issues
-[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
-[license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/othneildrew
-[product-screenshot]: images/screenshot.png
-
-
-
-
-
- 

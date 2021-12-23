@@ -1,7 +1,10 @@
 const { Kafka } = require('kafkajs')
 const express = require('express')
+const bodyParser = require('body-parser');
 
 const app = express()
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 const port = 3000
 
 const kafka = new Kafka({
@@ -14,18 +17,24 @@ const producer = kafka.producer()
 const main = async () => {
   await producer.connect()
 
-  app.get('/blah', async (req, res) => {
+  app.get('/', async (req, res) => {
     res.send('Hello World!')
+  })
+
+  app.post('/', async (req, res) => {
+
     try {
-        const responses = await producer.send({
-          topic: process.env.TOPIC,
-          messages: [{ key: 'key1', value: 'hello world', partition: 0}]
-        })
-    
-        console.log('Published message', { responses })
-      } catch (error) {
-        console.error('Error publishing message', error)
-      }
+      const responses = await producer.send({
+        topic: process.env.TOPIC,
+        messages: [{ key: 'message', value: req.body.message, partition: 0}]
+      })
+  
+      console.log('Published message', { responses })
+      res.sendStatus(200);
+    } catch (error) {
+      console.error('Error publishing message', error)
+      res.sendStatus(500);
+    }
   })
   
   app.listen(process.env.PORT || 3000, () => {
